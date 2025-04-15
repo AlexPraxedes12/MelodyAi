@@ -44,7 +44,7 @@ def apply_pitch_shift(audio, sr, f0_original, f0_corrected, hop_length=512):
             continue
         pitch_ratio = f0_corrected[frame_idx] / f0_original[frame_idx]
         segment = audio[i:i+hop_length]
-        segment_shifted = librosa.effects.pitch_shift(segment, sr, n_steps=np.log2(pitch_ratio) * 12)
+        audio_shifted[i:i+hop_length] = librosa.effects.pitch_shift(audio[i:i+hop_length], sr, np.log2(pitch_ratio) * 12)
         audio_shifted[i:i+len(segment_shifted)] = segment_shifted[:len(segment)]
     return audio_shifted
 
