@@ -1,2 +1,2 @@
 [bootstrap]
-entry_point = "src/melodyai_auto_key_detection.py"
+entry_point = "melodyai_auto_key_detection.py"
