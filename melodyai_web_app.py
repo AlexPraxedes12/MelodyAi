@@ -1,4 +1,3 @@
-
 import streamlit as st
 import librosa
 import soundfile as sf
@@ -7,8 +6,9 @@ import tempfile
 from collections import Counter
 import math
 
+# ---------------- FUNCIÓN: Detección automática de escala ----------------
+
 def detect_key_from_frequencies(f0):
-    # Convertir solo si no es None ni NaN
     notes = [round(librosa.hz_to_midi(freq)) for freq in f0 if freq is not None and not math.isnan(freq)]
     if len(notes) < 3:
         raise ValueError("No se detectaron suficientes notas para identificar una escala.")
@@ -23,6 +23,8 @@ def detect_key_from_frequencies(f0):
     best_match = max(SCALES.items(), key=lambda item: len(set(item[1]) & set(most_common_notes)))
     return best_match
 
+# ---------------- FUNCIÓN: Corrección con control de intensidad ----------------
+
 def correct_pitch_to_scale(f0, target_scale, intensity=1.0):
     corrected = []
     for freq in f0:
@@ -36,6 +38,8 @@ def correct_pitch_to_scale(f0, target_scale, intensity=1.0):
             corrected.append(None)
     return np.array(corrected)
 
+# ---------------- FUNCIÓN: Aplicar afinación ----------------
+
 def apply_pitch_shift(audio, sr, f0_original, f0_corrected, hop_length=512):
     audio_shifted = np.copy(audio)
     for i in range(0, len(audio), hop_length):
@@ -44,9 +48,11 @@ def apply_pitch_shift(audio, sr, f0_original, f0_corrected, hop_length=512):
             continue
         pitch_ratio = f0_corrected[frame_idx] / f0_original[frame_idx]
         segment = audio[i:i+hop_length]
-        audio_shifted[i:i+hop_length] = librosa.effects.pitch_shift(audio[i:i+hop_length], sr, np.log2(pitch_ratio) * 12)
+        segment_shifted = librosa.effects.pitch_shift(segment, sr, n_steps=np.log2(pitch_ratio) * 12)
         audio_shifted[i:i+len(segment_shifted)] = segment_shifted[:len(segment)]
     return audio_shifted
+
+# ---------------- ESTILO VISUAL ----------------
 
 st.markdown("""
     <style>
@@ -67,6 +73,8 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
+# ---------------- INTERFAZ ----------------
 
 st.title("🎵 MelodyAI - Afinación automática con detección de escala + control de intensidad")
 
@@ -105,3 +113,4 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"❌ Ocurrió un error procesando el archivo: {str(e)}")
+
